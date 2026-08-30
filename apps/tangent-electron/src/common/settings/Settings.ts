@@ -375,6 +375,18 @@ export default class Settings extends ObjectStore {
 		defaultValue: 'vscode-dark'
 	})
 
+	noteCodeTabWidth = new Setting<number>({
+		name: 'Code Tab Width',
+		description: 'The width of a tab in a code block.',
+		defaultValue: 4,
+		range: {
+			min: 1,
+			max: 24,
+			softMax: 8,
+			step: 1
+		}
+	})
+
 	noteWidthMax = new Setting<number>({
 		name: 'Max Note Width',
 		description: 'Determines the maximum width of a note.',
@@ -691,7 +703,7 @@ export default class Settings extends ObjectStore {
 		name: 'Trash Deleted Items',
 		description: 'Whether or not deleted items should be sent to the OS trash/recycling bin.'
 			+ '\n\nIf deleting items causes issues, try disabling this setting.',
-		defaultValue: true
+		defaultValue: !isLinux
 	})
 
 	debug_ioQueue_enable = new Setting<boolean>({
