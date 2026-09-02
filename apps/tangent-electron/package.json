@@ -1,7 +1,7 @@
 {
   "name": "tangent_electron",
   "productName": "Tangent",
-  "version": "0.12.9",
+  "version": "0.12.10",
   "description": "Your Notes, Your Thoughts; Your Tangent",
   "repository": "https://github.com/suchnsuch/Tangent",
   "license": "Apache-2.0",
@@ -43,7 +43,7 @@
   "dependencies": {
     "@such-n-such/tangent-query-parser": "^0.1.0",
     "@typewriter/delta": "^1.0.2",
-    "@typewriter/document": "^0.9.4",
+    "@typewriter/document": "file:../../lib/typewriter-document",
     "adm-zip": "^0.5.9",
     "chalk": "^5.4.1",
     "cheerio": "^1.2.0",
