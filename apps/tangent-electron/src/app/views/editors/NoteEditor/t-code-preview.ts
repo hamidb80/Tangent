@@ -1,5 +1,5 @@
 import { requestCallbackOnIdle } from '@such-n-such/core'
-import mermaid from 'mermaid'
+import { getMermaid } from 'app/mermaid'
 import { defineCustomElement } from 'app/utils/defineCustomElement'
 
 let nextIdValue = 0
@@ -7,6 +7,7 @@ let nextIdValue = 0
 class TangentCodePreview extends HTMLElement {
 	private content: HTMLElement
 	private isPendingUpdate = false
+	private renderToken = 0
 
 	constructor() {
 		super()
@@ -48,21 +49,29 @@ class TangentCodePreview extends HTMLElement {
 		}
 	}
 
-	updatePreview() {
+	async updatePreview() {
 		const language = this.getAttribute('language')
 		const source = this.getAttribute('source')
 
-		if (language === 'mermaid') {
-			mermaid.render('mermaid-diagram-' + nextIdValue++, source).then(result => {
-				this.content.innerHTML = result.svg
-			})
-			.catch(error => {
-				this.content.innerHTML = `<div>Invalid Mermaid Source</div>
-					<div style="color: red; white-space: pre-wrap; text-align: left; font-family: var(--codeFontFamily); font-size: 80%;">${error}</div>`
-			})
-		}
-		else {
+		// Loading mermaid widens the window in which this element can be asked
+		// to render something else, so only the most recent call may write.
+		const token = ++this.renderToken
+
+		if (language !== 'mermaid') {
 			this.content.innerHTML = ''
+			return
+		}
+
+		try {
+			const mermaid = await getMermaid()
+			const result = await mermaid.render('mermaid-diagram-' + nextIdValue++, source)
+			if (token !== this.renderToken) return
+			this.content.innerHTML = result.svg
+		}
+		catch (error) {
+			if (token !== this.renderToken) return
+			this.content.innerHTML = `<div>Invalid Mermaid Source</div>
+				<div style="color: red; white-space: pre-wrap; text-align: left; font-family: var(--codeFontFamily); font-size: 80%;">${error}</div>`
 		}
 	}
 }

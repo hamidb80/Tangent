@@ -4,8 +4,14 @@ import { createRequire } from 'module'
 import { defineConfig, type Plugin } from 'vite'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import tsconfigPaths from 'vite-tsconfig-paths'
+import { visualizer } from 'rollup-plugin-visualizer'
 
 const root = import.meta.dirname
+
+/**
+ * Turn on visualizer with `VISUALIZE_RENDERER=1 npm run build`
+ */
+const visualize = Boolean(process.env.VISUALIZE_RENDERER)
 
 const prismRoot = path.dirname(createRequire(import.meta.url).resolve('prismjs/package.json'))
 
@@ -74,7 +80,13 @@ export default defineConfig({
 		}),
 		tsconfigPaths({
 			projects: [path.join(root, 'tsconfig.json')]
-		})
+		}),
+		visualize && visualizer({
+			filename: path.join(root, '__build/renderer_stats.html'),
+			sourcemap: true,
+			gzipSize: true,
+			open: true, // Open by default since it must be asked for
+		}),
 	],
 
 	resolve: {

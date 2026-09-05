@@ -1,8 +1,12 @@
 import path from 'path'
 import { defineConfig } from 'vite'
 import tsconfigPaths from 'vite-tsconfig-paths'
+import { visualizer } from 'rollup-plugin-visualizer'
 
 const root = import.meta.dirname
+
+/** See the note in the renderer config. `VISUALIZE_MAIN=1 npm run build` */
+const visualize = Boolean(process.env.VISUALIZE_MAIN)
 
 /**
  * The main process config
@@ -51,6 +55,12 @@ export default defineConfig({
 	plugins: [
 		tsconfigPaths({
 			projects: [path.join(root, 'tsconfig.json')]
+		}),
+		visualize && visualizer({
+			filename: path.join(root, '__build/main_stats.html'),
+			sourcemap: true,
+			gzipSize: true,
+			open: true, // Open by default since it must be asked for
 		})
 	]
 })
