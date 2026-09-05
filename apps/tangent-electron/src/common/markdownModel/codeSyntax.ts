@@ -11,6 +11,19 @@ import type LinesBuilder from './LinesBuilder'
 
 let DomPrism = typeof window !== 'undefined' ? (window as any).Prism : null
 
+/**
+ * Prism's engine, for environments with no document.
+ *
+ * The main process hands this in at startup rather than it being imported here,
+ * because a top level `import 'prismjs'` would also run in the renderer, where
+ * prism would overwrite the `window.Prism` that the document's script tags have
+ * already populated with languages.
+ */
+let NodePrism: any = null
+export function setNodePrism(prism: any) {
+	NodePrism = prism
+}
+
 const languageAliasLookup = new Map<string, string>()
 const loadedLanguages = new Set<string>()
 
@@ -50,10 +63,9 @@ export function tokenize(code: string, language: string): TokenStream {
 		}
 	}
 	else {
-		const prismjs = require('prismjs')
-		const grammar = prismjs.languages[language]
+		const grammar = NodePrism?.languages[language]
 		if (grammar) {
-			return prismjs.tokenize(code, grammar)
+			return NodePrism.tokenize(code, grammar)
 		}
 	}
 	return null
@@ -127,7 +139,7 @@ export function getLanguage(format: string) {
 		}
 	}
 	else if (DomPrism === null) { // Explictly check for null so that misconfigured browser environments just fail
-		if (format in require('prismjs').languages) {
+		if (NodePrism && format in NodePrism.languages) {
 			return format
 		}
 	}

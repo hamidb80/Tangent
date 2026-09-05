@@ -2,7 +2,6 @@ const { exec, spawn } = require("child_process");
 const fs = require('fs')
 const path = require("path")
 
-const webpack = require('webpack')
 const AdmZip = require('adm-zip')
 
 // TODO: Make this not a copy paste
@@ -84,102 +83,23 @@ async function buildDocumentation() {
 	}
 }
 
-function buildMain() {
-	console.log('Building Main with Webpack...')
-	return new Promise((resolve, reject) => {
-		const mainCompiler = webpack(require('../src/main/webpack.config'))
-		mainCompiler.run((err, stats) => {
-			if (logWebpackErrors(err, stats) !== 0) {
-				console.error('webpack failed to build')
-				reject()
-				throw 'Webpack failed to build'
-			}
-			else {
-				resolve()
-			}
-			mainCompiler.close(closeErr => {
-				if (closeErr) {
-					console.error('webpack failed to close')
-					console.log(closeErr)
-				}
-			})
+function viteBuild(configName) {
+	return async () => {
+		const { build } = await import('vite')
+		await build({
+			configFile: path.resolve(path.join(__dirname, `../vite.config.${configName}.mts`)),
+			mode
 		})
-	})
-	
+	}
 }
 
-function buildPreload() {
-	console.log('Building Preload with Webpack...')
-	return new Promise((resolve, reject) => {
-		const mainCompiler = webpack(require('../src/preload/webpack.config'))
-		mainCompiler.run((err, stats) => {
-			if (logWebpackErrors(err, stats) !== 0) {
-				console.error('webpack failed to build')
-				reject()
-				throw 'Webpack failed to build'
-			}
-			else {
-				resolve()
-			}
-			mainCompiler.close(closeErr => {
-				if (closeErr) {
-					console.error('webpack failed to close')
-					console.log(closeErr)
-				}
-			})
-		})
-	})
-	
-}
+const buildMain = viteBuild('main')
+const buildPreload = viteBuild('preload')
 
-async function buildApp() {
-	console.log('Building App with Vite...')
-	// Vite is ESM only, so it cannot be `require`d from here
-	const { build } = await import('vite')
-	await build({
-		configFile: path.resolve(path.join(__dirname, '../vite.config.renderer.mts')),
-		// `vite build` is production unless told otherwise, but `build:dev`
-		// expects an unminified renderer with svelte's dev warnings intact
-		mode
-	})
-}
-
-function logWebpackErrors(err, stats) {
-	if (err) {
-		console.error(err.stack || err);
-		if (err.details) {
-			console.error(err.details);
-		}
-		return 2;
-	}
-	
-	const info = stats.toJson();
-	
-	let result = 0
-	if (stats.hasErrors()) {
-		console.log(info.errors.length, 'Errors')
-		for (let err of info.errors) {
-			console.log(err.moduleName, err.loc)
-			console.log(err.message)
-		}
-		result = 1
-	}
-	
-	if (stats.hasWarnings()) {
-		console.log(info.warnings.length, 'Warnings')
-		for (let warning of info.warnings) {
-			if (warning.moduleName) {
-				console.log(warning.moduleName, warning.loc)
-			}
-			console.log(warning.message)
-			if (warning.stack) {
-				//console.log(warning.stack)
-			}
-		}
-		result = -1
-	}
-	return result
-}
+// `vite build` is production unless told otherwise, but `build:dev` expects an
+// unminified renderer with svelte's dev warnings intact, hence passing `mode`.
+// Vite is ESM only, so it cannot be `require`d from here.
+const buildApp = viteBuild('renderer')
 
 async function buildAll() {
 	await buildMain()

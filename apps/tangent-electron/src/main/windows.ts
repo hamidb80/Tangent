@@ -13,6 +13,7 @@ import { getSettings } from './settings'
 import { addShutDownTask } from './shutdown'
 import { wait } from '@such-n-such/core'
 import { APP_URL } from './appProtocol'
+import { preloadPath, staticRoot } from './appPaths'
 
 let defaultLanguages = null
 
@@ -31,7 +32,7 @@ export function createWindow(assignedWorkspace?: string) {
 		minWidth: 100,
 		minHeight: 100,
 		webPreferences: {
-			preload: path.join(__dirname, 'preload.js')
+			preload: preloadPath
 		},
 		show: false,
 		autoHideMenuBar: getTitleBarStyle() == 'default',
@@ -40,7 +41,7 @@ export function createWindow(assignedWorkspace?: string) {
 
 	if (os.platform() === 'linux') {
 		// To work around an icon issue, apply the icon to the window directly
-		windowOptions.icon = path.join(__dirname, '../../static/tangent_256.png')
+		windowOptions.icon = path.join(staticRoot, 'tangent_256.png')
 	}
 
 	const newWindow = new BrowserWindow(windowOptions)

@@ -4,5 +4,8 @@ import tsconfigPaths from 'vite-tsconfig-paths'
 export default defineProject({
 	plugins: [
 		tsconfigPaths()
-	]
+	],
+	test: {
+		setupFiles: ['./vitest.setup.mts']
+	}
 })

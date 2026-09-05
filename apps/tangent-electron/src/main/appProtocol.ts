@@ -4,6 +4,7 @@ import { Readable } from 'stream'
 
 import Logger from 'js-logger'
 import { getContentType } from './contentTypes'
+import { rendererRoot } from './appPaths'
 
 const log = Logger.get('app-protocol')
 
@@ -11,13 +12,6 @@ export const APP_PROTOCOL = 'app'
 export const APP_PROTOCOL_HOST = 'tangent'
 
 export const APP_URL = `${APP_PROTOCOL}://${APP_PROTOCOL_HOST}/index.html`
-
-/**
- * Where the built renderer lives, relative to the built main process bundle.
- */
-function getRendererRoot() {
-	return path.resolve(__dirname, '../renderer')
-}
 
 /**
  * The scheme declaration for the renderer bundle.
@@ -44,8 +38,6 @@ export const appProtocolScheme: Electron.CustomScheme = {
  * Serves a file out of the built renderer.
  */
 export async function handleAppProtocol(request: Request) {
-	const root = getRendererRoot()
-
 	let relativePath: string
 	try {
 		relativePath = decodeURIComponent(new URL(request.url).pathname)
@@ -59,11 +51,11 @@ export async function handleAppProtocol(request: Request) {
 		relativePath = '/index.html'
 	}
 
-	const target = path.join(root, relativePath)
+	const target = path.join(rendererRoot, relativePath)
 
 	// Chromium normalizes `..` out of standard urls before we ever see them, but
 	// nothing about this handler should depend on that being true.
-	if (target !== root && !target.startsWith(root + path.sep)) {
+	if (target !== rendererRoot && !target.startsWith(rendererRoot + path.sep)) {
 		log.warn('Blocked an app request that escaped the renderer root:', request.url)
 		return new Response(null, { status: 403 })
 	}
