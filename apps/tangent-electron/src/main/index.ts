@@ -39,6 +39,7 @@ import { getRegistry } from './grammarLoader'
 import { INITIAL } from 'vscode-textmate'
 import { initializeDebugging } from './debugging'
 import { addShutDownTask, isReadyToShutDown, shutDown } from './shutdown'
+import { registerSchemes } from './fileProtocol'
 
 var isInitialized = false
 
@@ -54,6 +55,11 @@ function initializeApplication() {
 	else {
 		Logger.setLevel(Logger.DEBUG)
 	}
+
+	// Workspace files are served over a custom protocol so that the renderer
+	// resolves them the same way no matter where the document was loaded from.
+	// This has to happen before the app is ready.
+	registerSchemes()
 
 	Logger.info(`
 
