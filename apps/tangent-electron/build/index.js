@@ -5,15 +5,16 @@ const path = require("path")
 const webpack = require('webpack')
 const AdmZip = require('adm-zip')
 
-const appCompiler = webpack(require('../src/app/webpack.config'))
-
 // TODO: Make this not a copy paste
 const mode = process.env.NODE_ENV || 'production';
 const prod = mode === 'production';
 
 async function buildPrism() {
 	// I hate how prism wants to be built, so I'm doing it myself
-	const buildPath = path.resolve(path.join(__dirname, '../__build', 'bundle', 'prism'))
+	// Prism is dropped into the public directory so that vite serves it in
+	// development and copies it into the build, at the same url in both.
+	// TODO: replace this with real imports so prism can be code split.
+	const buildPath = path.resolve(path.join(__dirname, '../static', 'prism'))
 	try {
 		await fs.promises.stat(buildPath)
 		console.log('Prism already built')
@@ -49,40 +50,6 @@ async function buildPrism() {
 		
 		catch (e) {
 			console.error('Failed to build Prism', e)
-		}
-	}
-}
-
-async function buildKatex() {
-	const fontsPath = path.resolve(path.join(__dirname, '../__build/bundle/fonts'))
-	try {
-		await fs.promises.stat(fontsPath)
-		console.log('Fonts already built!')
-	}
-	catch (e) {
-		try {
-			// Copy fonts to the build
-			const katexFontPath = path.resolve(path.join(__dirname, '../../../node_modules', 'katex', 'dist', 'fonts'))
-			await fs.promises.cp(katexFontPath, fontsPath, { recursive: true })
-		}
-		catch (e) {
-			console.error('Failed to build katex fonts', e)
-		}
-	}
-
-	const stylePath = path.resolve(path.join(__dirname, '../__build/bundle/katex.min.css'))
-	try {
-		await fs.promises.stat(stylePath)
-		console.log('Styles already built!')
-	}
-	catch (e) {
-		try {
-			// Copy fonts to the build
-			const katexStyle = path.resolve(path.join(__dirname, '../../../node_modules', 'katex', 'dist', 'katex.min.css'))
-			await fs.promises.copyFile(katexStyle, stylePath)
-		}
-		catch (e) {
-			console.error('Failed to build katex styles', e)
 		}
 	}
 }
@@ -165,53 +132,15 @@ function buildPreload() {
 	
 }
 
-function buildApp() {
-	console.log('Building App with Webpack...')
-	return new Promise((resolve, reject) => {
-		if (prod || process.env.NO_WATCH === 'true') {
-			appCompiler.run((err, stats) => {
-				if (logWebpackErrors(err, stats) > 0) {
-					console.error('webpack failed to build')
-					reject()
-					throw 'Webpack failed to build'
-				}
-				else {
-					console.log('Webpack built')
-					resolve()
-				}
-
-				appCompiler.close(closeErr => {
-					if (closeErr) {
-						console.error('webpack failed to close')
-						console.log(closeErr)
-					}
-				})
-			})
-		}
-		else {
-			let firstBuild = true
-			let watcher = appCompiler.watch({
-				aggregateTimeout: 500
-			}, (err, stats) => {
-				if (logWebpackErrors(err, stats) > 0) {
-					console.error('webpack failed to build')
-					if (firstBuild) {
-						reject(err)
-						watcher.close(() => {
-							console.log('Webpack exited. Restart to try again.')
-						})
-					}
-				}
-				else {
-					console.log('Webpack built')
-					if (firstBuild) {
-						resolve(watcher)
-					}
-				}
-
-				firstBuild = false
-			})
-		}
+async function buildApp() {
+	console.log('Building App with Vite...')
+	// Vite is ESM only, so it cannot be `require`d from here
+	const { build } = await import('vite')
+	await build({
+		configFile: path.resolve(path.join(__dirname, '../vite.config.renderer.mts')),
+		// `vite build` is production unless told otherwise, but `build:dev`
+		// expects an unminified renderer with svelte's dev warnings intact
+		mode
 	})
 }
 
@@ -256,7 +185,6 @@ async function buildAll() {
 	await buildMain()
 	await buildPreload()
 
-	await buildKatex()
 	await buildPrism()
 	await buildDocumentation()
 

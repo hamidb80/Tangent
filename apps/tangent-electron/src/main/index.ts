@@ -39,7 +39,7 @@ import { getRegistry } from './grammarLoader'
 import { INITIAL } from 'vscode-textmate'
 import { initializeDebugging } from './debugging'
 import { addShutDownTask, isReadyToShutDown, shutDown } from './shutdown'
-import { registerSchemes } from './fileProtocol'
+import { registerSchemes } from './protocols'
 
 var isInitialized = false
 

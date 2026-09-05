@@ -3,3 +3,4 @@ __build/
 dist/
 
 *.env
+static/prism/

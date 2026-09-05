@@ -109,7 +109,7 @@ export function getLanguage(format: string) {
 				while (languagesToLoad.length > 0) {
 					const languageToLoad = languagesToLoad.pop()
 					const script = document.createElement('script')
-					script.src = `../__build/bundle/prism/languages/prism-${languageToLoad}.min.js`
+					script.src = `/prism/languages/prism-${languageToLoad}.min.js`
 					document.head.appendChild(script)
 					loadedLanguages.add(languageToLoad)
 

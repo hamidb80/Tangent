@@ -1,53 +1,12 @@
 import fs from 'fs'
-import path from 'path'
 import { Readable } from 'stream'
-import { app, protocol } from 'electron'
+
 
 import Logger from 'js-logger'
 import { FILE_PROTOCOL, getFilePathFromUrl } from 'common/fileUrl'
+import { getContentType } from './contentTypes'
 
 const log = Logger.get('file-protocol')
-
-/**
- * Content types for everything the renderer can embed. This deliberately
- * mirrors the extension lists in `common/fileExtensions`; anything that becomes
- * embeddable there needs an entry here or it will be served as a download.
- *
- * Fonts are included because user style sheets can pull them in.
- */
-const contentTypes: { [extension: string]: string } = {
-	'.png': 'image/png',
-	'.jpg': 'image/jpeg',
-	'.jpeg': 'image/jpeg',
-	'.gif': 'image/gif',
-	'.bmp': 'image/bmp',
-	'.svg': 'image/svg+xml',
-	'.webp': 'image/webp',
-
-	'.mp3': 'audio/mpeg',
-	'.m4a': 'audio/mp4',
-	'.wav': 'audio/wav',
-	'.ogg': 'audio/ogg',
-	'.flac': 'audio/flac',
-
-	'.mov': 'video/quicktime',
-	'.mp4': 'video/mp4',
-	'.mkv': 'video/x-matroska',
-	'.avi': 'video/x-msvideo',
-	'.webm': 'video/webm',
-
-	'.pdf': 'application/pdf',
-	'.css': 'text/css',
-
-	'.woff': 'font/woff',
-	'.woff2': 'font/woff2',
-	'.ttf': 'font/ttf',
-	'.otf': 'font/otf'
-}
-
-function getContentType(filepath: string) {
-	return contentTypes[path.extname(filepath).toLowerCase()] ?? 'application/octet-stream'
-}
 
 /**
  * Origins allowed to `fetch()` workspace files.
@@ -114,38 +73,37 @@ function streamFile(filepath: string, range?: { start: number, end: number }) {
 }
 
 /**
- * Sets up the `tangent-file` protocol. Must be called before the app is ready.
+ * The scheme declaration for workspace files. The file protocol exists to:
+ * 	1. Support file access in a vite dev environment
+ *	2. Support `Content-Range` headers for video files.
  */
-export function registerSchemes() {
-	protocol.registerSchemesAsPrivileged([
-		{
-			// The file protocol exists to:
-			// 	1. Support file access in a vite dev environment
-			//	2. Support `Content-Range` headers for video files.
-			scheme: FILE_PROTOCOL,
-			privileges: {
-				// Gives the scheme normal url parsing and a real origin
-				standard: true,
-				// Keeps it from being treated as insecure content
-				secure: true,
-				// pdf.js loads documents with `fetch()`
-				supportFetchAPI: true,
-				// Without this, a cross origin `fetch()` is refused before our
-				// handler ever gets to answer it
-				corsEnabled: true,
-				// Required for the range requests that `<video>` seeking needs
-				stream: true
-			}
-		}
-	])
-
-	app.whenReady().then(() => {
-		// For whatever reason, electron requires this split (so says Claude anyways)
-		protocol.handle(FILE_PROTOCOL, handleFileProtocol)
-	})
+export const fileProtocolScheme: Electron.CustomScheme = {
+	scheme: FILE_PROTOCOL,
+	privileges: {
+		// Gives the scheme normal url parsing and a real origin
+		standard: true,
+		// Keeps it from being treated as insecure content
+		secure: true,
+		// pdf.js loads documents with `fetch()`
+		supportFetchAPI: true,
+		// Without this, a cross origin `fetch()` is refused before our
+		// handler ever gets to answer it
+		corsEnabled: true,
+		// Required for the range requests that `<video>` seeking needs
+		stream: true
+	}
 }
 
-async function handleFileProtocol(request: Request) {
+/**
+ * Serves a workspace file.
+ *
+ * Files are read here rather than handed to `net.fetch` because `net.fetch`
+ * mishandles range requests against `file://` urls: it answers a `Range` header
+ * with a `200` and a truncated body instead of a `206` with a `Content-Range`.
+ * A `<video>` given that treats the fragment as the whole file and refuses to
+ * seek.
+ */
+export async function handleFileProtocol(request: Request) {
 	let filepath: string
 	try {
 		filepath = getFilePathFromUrl(request.url)

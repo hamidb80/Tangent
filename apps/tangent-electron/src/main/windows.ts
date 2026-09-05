@@ -12,6 +12,7 @@ import { cleanMenuTemplate } from '../common/menus'
 import { getSettings } from './settings'
 import { addShutDownTask } from './shutdown'
 import { wait } from '@such-n-such/core'
+import { APP_URL } from './appProtocol'
 
 let defaultLanguages = null
 
@@ -79,8 +80,10 @@ export function createWindow(assignedWorkspace?: string) {
 		return { action: 'deny' }
 	})
 
-	// and load the index.html of the app.
-	newWindow.loadFile(path.join(__dirname, '../../static/index.html'))
+	// In development the renderer comes from vite's dev server so that changes
+	// hot reload. Both that and `app://` are real origins, so the page resolves
+	// urls identically either way.
+	newWindow.loadURL(process.env.VITE_DEV_SERVER_URL || APP_URL)
 
 	if (mode === 'development' && !process.env.INTEGRATION_TEST) {
 		// Open the DevTools.

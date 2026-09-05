@@ -9,19 +9,13 @@
 	"files": [
 		"node_modules/**/*",
 		"static/**/*",
+		"!static/prism/**/*",
 		"package.json",
 		"defaults/**/*",
 		{
 			"from": "__build",
 			"to": "__build",
-			"filter": ["**/*",
-				"!bundle/app.css", "!bundle/app.css.map"
-			]
-		},
-		{
-			"from": "__build/bundle",
-			"to": "static",
-			"filter": ["*.css", "*.css.map"]
+			"filter": ["**/*"]
 		}
 	],
 

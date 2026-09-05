@@ -5,11 +5,14 @@ import './style/input.scss'
 import './style/note.scss'
 
 import * as pdfjs from 'pdfjs-dist'
-import pdfWorker from 'pdfjs-dist/build/pdf.worker.min.mjs'
-console.log({pdfWorker})
+import pdfWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
 pdfjs.GlobalWorkerOptions.workerSrc = pdfWorker
 
 import 'pdfjs-dist/web/pdf_viewer.css'
+
+// Imported rather than linked so that vite emits the fonts it references.
+// See: https://github.com/mdn/interactive-examples/issues/887#issuecomment-470703209
+import 'katex/dist/katex.min.css'
 
 const app = mount(App, {
 	target: document.body,

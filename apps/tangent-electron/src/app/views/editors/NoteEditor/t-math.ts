@@ -2,6 +2,10 @@ import { requestCallbackOnIdle } from '@such-n-such/core'
 import { markAsSelectionRequest } from 'app/events'
 import katex from 'katex'
 
+// Shadow roots don't inherit document styles, so each one needs katex's rules.
+// The url is imported because vite emits the file with a content hash.
+import katexStyleUrl from 'katex/dist/katex.min.css?url'
+
 class TangentMath extends HTMLElement {
 	
 	private content: HTMLElement
@@ -18,7 +22,7 @@ class TangentMath extends HTMLElement {
 
 		const katexStyles = document.createElement('link')
 		katexStyles.setAttribute('rel', 'stylesheet')
-		katexStyles.setAttribute('href', '../__build/bundle/katex.min.css')
+		katexStyles.setAttribute('href', katexStyleUrl)
 		shadow.appendChild(katexStyles)
 
 		const localStyles = document.createElement('link')
