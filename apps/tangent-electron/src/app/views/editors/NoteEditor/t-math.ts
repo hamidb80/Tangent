@@ -5,6 +5,7 @@ import katex from 'katex'
 // Shadow roots don't inherit document styles, so each one needs katex's rules.
 // The url is imported because vite emits the file with a content hash.
 import katexStyleUrl from 'katex/dist/katex.min.css?url'
+import { defineCustomElement } from 'app/utils/defineCustomElement'
 
 class TangentMath extends HTMLElement {
 	
@@ -108,5 +109,5 @@ class TangentMath extends HTMLElement {
 	}
 }
 
-customElements.define('t-math', TangentMath)
+defineCustomElement('t-math', TangentMath)
 export default TangentMath

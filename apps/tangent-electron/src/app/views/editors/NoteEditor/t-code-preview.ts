@@ -1,5 +1,6 @@
 import { requestCallbackOnIdle } from '@such-n-such/core'
 import mermaid from 'mermaid'
+import { defineCustomElement } from 'app/utils/defineCustomElement'
 
 let nextIdValue = 0
 
@@ -66,5 +67,5 @@ class TangentCodePreview extends HTMLElement {
 	}
 }
 
-customElements.define('t-code-preview', TangentCodePreview)
+defineCustomElement('t-code-preview', TangentCodePreview)
 export default TangentCodePreview

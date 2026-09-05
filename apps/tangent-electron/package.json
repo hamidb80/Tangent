@@ -12,7 +12,7 @@
     "dev:prod": "node dev.js",
     "dev:win": "SET \"NODE_ENV=development\" && node dev.js",
     "build": "node build/index.js",
-    "build:dev": "NODE_ENV=development NO_WATCH=true npm run build",
+    "build:dev": "NODE_ENV=development npm run build",
     "clean": "rm -rf dist ; rm -rf __build",
     "clean-build": "npm run clean && npm run build",
     "release": "electron-builder",

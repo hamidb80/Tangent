@@ -83,23 +83,54 @@ async function buildDocumentation() {
 	}
 }
 
-function viteBuild(configName) {
-	return async () => {
-		const { build } = await import('vite')
-		await build({
-			configFile: path.resolve(path.join(__dirname, `../vite.config.${configName}.mts`)),
-			mode
-		})
-	}
+function getViteConfigPath(configName) {
+	return path.resolve(path.join(__dirname, `../vite.config.${configName}.mts`))
 }
 
-const buildMain = viteBuild('main')
-const buildPreload = viteBuild('preload')
+async function buildVite(configName) {
+	const { build } = await import('vite')
+	return build({
+		configFile: getViteConfigPath(configName),
+		mode
+	})
+}
 
-// `vite build` is production unless told otherwise, but `build:dev` expects an
-// unminified renderer with svelte's dev warnings intact, hence passing `mode`.
-// Vite is ESM only, so it cannot be `require`d from here.
-const buildApp = viteBuild('renderer')
+async function watchVite(configName) {
+	console.log('Building', configName)
+	const { build } = await import('vite')
+	const watcher = await build({
+		configFile: getViteConfigPath(configName),
+		mode,
+		build: {
+			watch: {},
+			// Rewriting the whole directory on every rebuild makes the file
+			// watcher downstream fire more than it needs to
+			emptyOutDir: false
+		}
+	})
+
+	// Wait for initial completion.
+	// This allows for easy ordering.
+	await new Promise((resolve, reject) => {
+		const onEvent = event => {
+			if (event.code === 'END') {
+				watcher.off('event', onEvent)
+				resolve()
+			}
+			else if (event.code === 'ERROR') {
+				watcher.off('event', onEvent)
+				reject(event.error)
+			}
+		}
+		watcher.on('event', onEvent)
+	})
+
+	return watcher
+}
+
+const buildMain = () => buildVite('main')
+const buildPreload = () => buildVite('preload')
+const buildApp = () => buildVite('renderer')
 
 async function buildAll() {
 	await buildMain()
@@ -108,16 +139,60 @@ async function buildAll() {
 	await buildPrism()
 	await buildDocumentation()
 
-	let watcher = await buildApp()
+	await buildApp()
+}
 
-	if (watcher) {
-		return watcher
+/**
+ * Starts everything the app needs to run in development.
+ *
+ * The renderer is served by vite for hot reloading.
+ * Main and preload are built normally.
+ *
+ * @returns The dev server url, and a function that shuts everything down.
+ */
+async function startDevServer() {
+	await buildPrism()
+	await buildDocumentation()
+
+	const watchers = [
+		await watchVite('main'),
+		await watchVite('preload')
+	]
+
+	const { createServer } = await import('vite')
+	const server = await createServer({
+		configFile: getViteConfigPath('renderer'),
+		mode
+	})
+	await server.listen()
+
+	const url = server.resolvedUrls?.local?.[0]
+	if (!url) {
+		throw new Error('The renderer dev server started without a reachable url')
+	}
+
+	console.log(`\nRenderer dev server ready at ${url}\n`)
+
+	return {
+		url,
+		async close() {
+			await Promise.allSettled(watchers.map(w => w.close()))
+			await server.close()
+		}
 	}
 }
 
 module.exports = {
+	buildPrism,
+	buildDocumentation,
+
+	buildMain,
+	buildPreload,
 	buildApp,
-	buildAll
+
+	buildAll,
+
+	startDevServer
 }
 
 if (require.main === module) {
