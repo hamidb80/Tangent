@@ -32,7 +32,7 @@
     "test:no-build": "vitest run && npm run test:end-to-end",
     "test:unit": "vitest run --project tangent-electron-unit-core --project tangent-electron-unit-web",
     "test:integration": "vitest --project integration",
-    "test:end-to-end": "playwright test --project Tests",
+    "test:end-to-end": "INTEGRATION_TEST_INVISIBLE=1 playwright test --project Tests",
     "screenshots": "playwright test --project Screenshots"
   },
   "keywords": [],

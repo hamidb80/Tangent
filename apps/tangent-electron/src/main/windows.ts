@@ -44,6 +44,14 @@ export function createWindow(assignedWorkspace?: string) {
 		windowOptions.icon = path.join(staticRoot, 'tangent_256.png')
 	}
 
+	if (process.env.INTEGRATION_TEST_INVISIBLE) {
+		// Integration tests need windows to render normally (a window that is
+		// never shown gets its animation frames & timers throttled), but they
+		// don't need to be seen. Opacity is only implemented on mac & windows.
+		// I want to watch YouTube while my tests run!
+		windowOptions.opacity = 0
+	}
+
 	const newWindow = new BrowserWindow(windowOptions)
 
 	newWindow.once('ready-to-show', () => {
