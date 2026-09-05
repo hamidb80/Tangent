@@ -48,7 +48,8 @@ export default defineConfig({
 			'font-list',
 			'yargs',
 			'yargs/helpers',
-			'link-preview-js'
+			'link-preview-js',
+			'electron-updater',
 		]
 	},
 

@@ -1,11 +1,10 @@
 import path from 'path'
 import fs from 'fs'
-import { load } from 'cheerio'
+import { load } from 'cheerio/slim'
 import { app, BrowserWindow, clipboard, dialog, ipcMain, nativeImage, shell } from 'electron'
 import { getDocumentationPath } from 'main/documentation'
 import { getWindowHandle, getWorkspace, validateWorkspaceForHandleFilepath, hasStartedWorkspaceShutdown, workspaceMap } from 'main/workspaces'
 
-import fetch from 'node-fetch'
 import type { SelectPathOptions } from 'common/WindowApi'
 
 import fontList from 'font-list'
@@ -723,8 +722,12 @@ ipcMain.handle('saveFromUrl', async (event, href: string, contextPath: string) =
 				const attachmentPath = workspace.getAttachmentPath(filename, contextPath)
 				const directory = path.dirname(attachmentPath)
 
+				// `response.body` is a web stream, which node's fs will not take.
+				// These are images, so buffering rather than piping is fine.
+				const contents = Buffer.from(await response.arrayBuffer())
+
 				await fs.promises.mkdir(directory, { recursive: true }).then(() => {
-					return fs.promises.writeFile(attachmentPath, response.body)
+					return fs.promises.writeFile(attachmentPath, contents)
 				}).catch(error => {
 					log.error('Could not write image from url', error)
 				})
