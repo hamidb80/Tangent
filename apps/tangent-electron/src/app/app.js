@@ -1,4 +1,8 @@
 import { mount } from 'svelte'
+
+// Must come before anything that parses a note
+import './prism'
+
 import App from './App.svelte'
 
 import './style/input.scss'

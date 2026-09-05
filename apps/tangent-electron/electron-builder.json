@@ -9,7 +9,6 @@
 	"files": [
 		"node_modules/**/*",
 		"static/**/*",
-		"!static/prism/**/*",
 		"package.json",
 		"defaults/**/*",
 		{

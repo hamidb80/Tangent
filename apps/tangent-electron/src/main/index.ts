@@ -12,11 +12,6 @@ sourceMapSupport.install()
 // Squirrel's install and update hooks want handling as early as possible
 import squirrelStartup from 'electron-squirrel-startup'
 
-// There is no document here, so prism's engine has to be provided directly
-import Prism from 'prismjs'
-import { setNodePrism } from 'common/markdownModel/codeSyntax'
-setNodePrism(Prism)
-
 import fs from 'fs'
 import path from 'path'
 

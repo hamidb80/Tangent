@@ -7,7 +7,7 @@ import { getLanguage } from 'common/markdownModel/codeSyntax'
  * failing loudly, so it is worth checking directly.
  */
 test('Languages resolve without a document', () => {
-	expect(getLanguage('js')).toEqual('js')
+	expect(getLanguage('js')).toEqual('javascript')
 	expect(getLanguage('javascript')).toEqual('javascript')
 	expect(getLanguage('not-a-language')).toBeFalsy()
 })

@@ -1,9 +1,43 @@
+import fs from 'fs'
 import path from 'path'
-import { defineConfig } from 'vite'
+import { createRequire } from 'module'
+import { defineConfig, type Plugin } from 'vite'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import tsconfigPaths from 'vite-tsconfig-paths'
 
 const root = import.meta.dirname
+
+const prismRoot = path.dirname(createRequire(import.meta.url).resolve('prismjs/package.json'))
+
+/**
+ * Exposes prism's language definitions as `virtual:prism-languages`, a map of
+ * language name to a dynamic import of its definition.
+ *
+ * Each language is only fetched the first time a code block asks for it.
+ */
+function prismLanguages(): Plugin {
+	const virtualId = 'virtual:prism-languages'
+	const resolvedId = '\0' + virtualId
+	const componentMatch = /^prism-([\w+-]+)\.min\.js$/
+
+	return {
+		name: 'tangent-prism-languages',
+		resolveId(id) {
+			if (id === virtualId) return resolvedId
+		},
+		load(id) {
+			if (id !== resolvedId) return
+
+			const componentsDir = path.join(prismRoot, 'components')
+			const entries = fs.readdirSync(componentsDir)
+				.map(file => ({ file, match: componentMatch.exec(file) }))
+				.filter(entry => entry.match)
+				.map(({ file, match }) => `\t${JSON.stringify(match[1])}: () => import(${JSON.stringify(path.join(componentsDir, file))})`)
+
+			return `export default {\n${entries.join(',\n')}\n}`
+		}
+	}
+}
 
 /**
  * The renderer.
@@ -34,6 +68,7 @@ export default defineConfig({
 	},
 
 	plugins: [
+		prismLanguages(),
 		svelte({
 			configFile: path.join(root, 'svelte.config.mjs')
 		}),
