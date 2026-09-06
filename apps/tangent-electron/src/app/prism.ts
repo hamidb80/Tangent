@@ -5,6 +5,10 @@ import { setLanguageLoader } from 'common/markdownModel/codeSyntax'
 
 const loaders = new Map<string, () => Promise<unknown>>(Object.entries(languageModules))
 
+// yaml and math are natively supported languages and are always loaded
+import 'prismjs/components/prism-yaml.min.js'
+import 'prismjs/components/prism-latex.min.js'
+
 // Svelte support lives in its own package rather than in prism itself
 loaders.set('svelte', () => import('prism-svelte'))
 

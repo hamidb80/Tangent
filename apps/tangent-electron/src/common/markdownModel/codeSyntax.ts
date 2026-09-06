@@ -68,14 +68,12 @@ export function getLanguage(format: string) {
 	const language = languageAliasLookup.get(format)
 	if (!language) return
 
-	if (loadedLanguages.has(language)) {
-		return Prism.languages[language] ? language : null
-	}
+	// Ask prism directly rather than trusting `loadedLanguages`: definitions can
+	// also arrive by being imported outright, without going through the loader
+	if (Prism.languages[language]) return language
 
-	if (!loadLanguageDefinition) {
-		// Nothing can be fetched, so only what the engine already holds counts
-		return Prism.languages[language] ? language : null
-	}
+	// If an attempt has been made or there is no loader, give up
+	if (loadedLanguages.has(language) || !loadLanguageDefinition) return null
 
 	const languagesToLoad = [language]
 	const languagesToCheck = [language]
