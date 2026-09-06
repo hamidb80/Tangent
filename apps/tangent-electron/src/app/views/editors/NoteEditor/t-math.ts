@@ -1,11 +1,11 @@
 import { requestCallbackOnIdle } from '@such-n-such/core'
 import { markAsSelectionRequest } from 'app/events'
-import katex from 'katex'
 
 // Shadow roots don't inherit document styles, so each one needs katex's rules.
 // The url is imported because vite emits the file with a content hash.
 import katexStyleUrl from 'katex/dist/katex.min.css?url'
 import { defineCustomElement } from 'app/utils/defineCustomElement'
+import { getKatex } from 'app/shim/katex'
 
 class TangentMath extends HTMLElement {
 	
@@ -54,7 +54,7 @@ class TangentMath extends HTMLElement {
 		}
 	}
 
-	updateMath() {
+	async updateMath() {
 		const mathSource = this.getAttribute('math-source')
 		const isBlock = this.getAttribute('block') != undefined
 
@@ -66,6 +66,7 @@ class TangentMath extends HTMLElement {
 		}
 
 		try {
+			const katex = await getKatex()
 			katex.render(mathSource, this.content, {
 				displayMode: isBlock,
 				output: 'html'
