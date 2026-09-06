@@ -10,8 +10,10 @@ const root = import.meta.dirname
 
 /**
  * Turn on visualizer with `VISUALIZE_RENDERER=1 npm run build`
+ * Turn on and open visualizer with `VISUALIZE_RENDERER=open npm run build`
  */
-const visualize = Boolean(process.env.VISUALIZE_RENDERER)
+const visualize = process.env.VISUALIZE_RENDERER
+const willVisualize = Boolean(visualize)
 
 const prismRoot = path.dirname(createRequire(import.meta.url).resolve('prismjs/package.json'))
 
@@ -81,11 +83,11 @@ export default defineConfig({
 		tsconfigPaths({
 			projects: [path.join(root, 'tsconfig.json')]
 		}),
-		visualize && visualizer({
+		willVisualize && visualizer({
 			filename: path.join(root, '__build/renderer_stats.html'),
 			sourcemap: true,
 			gzipSize: true,
-			open: true, // Open by default since it must be asked for
+			open: visualize === 'open',
 		}),
 	],
 

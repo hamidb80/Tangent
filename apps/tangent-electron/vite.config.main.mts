@@ -5,8 +5,12 @@ import { visualizer } from 'rollup-plugin-visualizer'
 
 const root = import.meta.dirname
 
-/** See the note in the renderer config. `VISUALIZE_MAIN=1 npm run build` */
-const visualize = Boolean(process.env.VISUALIZE_MAIN)
+/**
+ * Turn on visualizer with `VISUALIZE_MAIN=1 npm run build`
+ * Turn on and open visualizer with `VISUALIZE_MAIN=open npm run build`
+ */
+const visualize = process.env.VISUALIZE_MAIN
+const willVisualize = Boolean(visualize)
 
 /**
  * The main process config
@@ -57,11 +61,11 @@ export default defineConfig({
 		tsconfigPaths({
 			projects: [path.join(root, 'tsconfig.json')]
 		}),
-		visualize && visualizer({
+		willVisualize && visualizer({
 			filename: path.join(root, '__build/main_stats.html'),
 			sourcemap: true,
 			gzipSize: true,
-			open: true, // Open by default since it must be asked for
+			open: visualize === 'open', // Open by default since it must be asked for
 		})
 	]
 })
