@@ -4,8 +4,8 @@ import { Workspace } from 'app/model'
 import PdfViewState from 'app/model/nodeViewStates/PdfViewState'
 import WorkspaceFileHeader from 'app/utils/WorkspaceFileHeader.svelte'
 
-import * as pdfjs from 'pdfjs-dist'
-import * as pdfviewer from 'pdfjs-dist/web/pdf_viewer.mjs'
+import type { PDFViewer } from 'pdfjs-dist/web/pdf_viewer.mjs'
+import { getPdfjs, getPdfViewer } from 'app/pdf'
 import { resizeObserver } from 'app/utils/resizeObserver'
 import { scrollTo, startDrag } from 'app/utils'
 import { smoothScrollTime } from 'app/utils/style'
@@ -27,7 +27,7 @@ $: targetPage = state.targetPage
 let container: HTMLDivElement
 let viewerElement: HTMLDivElement
 
-let viewer: pdfviewer.PDFViewer = null
+let viewer: PDFViewer = null
 let zoom = state.zoom
 
 
@@ -115,14 +115,16 @@ function onZoomReset() {
 }
 
 async function doPDF() {
+	const [pdfjs, viewerModule] = await Promise.all([getPdfjs(), getPdfViewer()])
+
 	const pdf = await pdfjs.getDocument({
 		url: state.file.cacheBustPath
 	}).promise
 
-	viewer = new pdfviewer.PDFViewer({
+	viewer = new viewerModule.PDFViewer({
 		container,
 		viewer: viewerElement,
-		eventBus: new pdfviewer.EventBus()
+		eventBus: new viewerModule.EventBus()
 	})
 
 	viewer.setDocument(pdf)
