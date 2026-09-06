@@ -1,5 +1,5 @@
 import { requestCallbackOnIdle } from '@such-n-such/core'
-import { getMermaid } from 'app/mermaid'
+import { getMermaid } from 'app/shim/mermaid'
 import { defineCustomElement } from 'app/utils/defineCustomElement'
 
 let nextIdValue = 0

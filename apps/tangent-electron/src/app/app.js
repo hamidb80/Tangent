@@ -1,7 +1,7 @@
 import { mount } from 'svelte'
 
 // Must come before anything that parses a note
-import './prism'
+import './shim/prism'
 
 import App from './App.svelte'
 

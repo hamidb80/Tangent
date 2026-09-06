@@ -5,7 +5,7 @@ import PdfViewState from 'app/model/nodeViewStates/PdfViewState'
 import WorkspaceFileHeader from 'app/utils/WorkspaceFileHeader.svelte'
 
 import type { PDFViewer } from 'pdfjs-dist/web/pdf_viewer.mjs'
-import { getPdfjs, getPdfViewer } from 'app/pdf'
+import { getPdfjs, getPdfViewer } from 'app/shim/pdf'
 import { resizeObserver } from 'app/utils/resizeObserver'
 import { scrollTo, startDrag } from 'app/utils'
 import { smoothScrollTime } from 'app/utils/style'

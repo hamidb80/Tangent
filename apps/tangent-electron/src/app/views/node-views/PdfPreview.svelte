@@ -4,7 +4,7 @@ import type { RenderTask } from 'pdfjs-dist'
 import { resizeObserver } from 'app/utils/resizeObserver'
 import { clamp } from 'common/utils'
 import { pageFromContentId } from 'app/model/nodeViewStates/PdfViewState'
-import { getPdfjs } from 'app/pdf'
+import { getPdfjs } from 'app/shim/pdf'
 
 let {
 	path,

@@ -1,4 +1,4 @@
-import { setMermaidConfig } from 'app/mermaid'
+import { setMermaidConfig } from 'app/shim/mermaid'
 
 /**
  * Mermaid hard codes styling properties on every single diagram.
