@@ -139,7 +139,8 @@
 		{
 			"provider": "s3",
 			"bucket": "suchnsuch-public",
-			"path": "/Tangent/Releases/"
+			"region": "us-east-2",
+			"path": "Tangent/Releases"
 		}
 	],
 
