@@ -700,6 +700,19 @@ export function parseLink(char: string, parser: NoteParser): boolean {
 		}
 		if (parser.filepath) {
 			t_link.from = parser.filepath
+			
+			// A markdown link without a source filepath is meaningless
+			// In such a case, no structure makes sense
+			mdLinkInfo.from = parser.filepath
+			if (parser.detailedLinks) {
+				mdLinkInfo.context = feed.getLineText(parser.lineStart)
+			}
+			if (isEmbed) {
+				mdLinkInfo.start-- // For the `!`
+				// Mutate the info into an embed
+				;(mdLinkInfo as any).type = StructureType.Embed
+			}
+			parser.pushStructure(mdLinkInfo)
 		}
 
 		if (isEmbed) {
