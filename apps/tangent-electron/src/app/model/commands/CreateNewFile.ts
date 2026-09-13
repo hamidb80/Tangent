@@ -206,7 +206,7 @@ export default class CreateNewFileCommand extends WorkspaceCommand {
 
 		if (extension === false) {
 			// ensure there is no extension
-			extension = ''
+			extension = '' 
 		}
 		else {
 			// use || to handle empty string
