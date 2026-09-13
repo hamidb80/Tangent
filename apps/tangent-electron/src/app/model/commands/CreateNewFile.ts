@@ -314,11 +314,11 @@ export default class CreateNewFileCommand extends WorkspaceCommand {
 	execute(context: CreateNewFileCommandContext): TreeNode {
 		const debug = this.workspace.debug.fileCreation
 		if (debug) console.log('Creating file', context)
-
+		
 		// Forward to createNode for easy post-creation handling here
 		const values = this.resolveContext(context)
 		if (!values) return
-		let newNode = this.createNode(values)
+		let newNode = this.createNode(values) 
 		if (newNode) {
 			if (context?.updateSelection ?? true) {
 				const { directoryStore, viewState } = this.workspace
@@ -355,7 +355,7 @@ export default class CreateNewFileCommand extends WorkspaceCommand {
 
 				this.workspace.navigateTo(nav)
 			}
-
+	
 			return newNode
 		}
 	}
