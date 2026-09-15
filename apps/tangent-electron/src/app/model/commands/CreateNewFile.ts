@@ -119,15 +119,13 @@ export default class CreateNewFileCommand extends WorkspaceCommand {
 			// Combining into a relative path allows rule name templates to define folders
 			let relativeDirPath = folderPath || rule.folder
 			if (relativeDirPath.startsWith('.')) {
-				const workspaceDir = this.workspace.viewState.directoryView.root.path
-				const viewState = this.workspace.viewState.tangent.getCurrentViewState()
-				relativeDirPath = this.workspace.directoryStore.pathToRelativePath(
-					viewState
-					? (viewState.node.fileType == 'folder') 
-						? viewState.node.path                // in folder
-						: paths.dirname(viewState.node.path) // in file
-					:  workspaceDir                          // at root level
-				) || '' // impossible
+				const node = this.workspace.viewState.tangent.getCurrentViewState()?.node
+				relativeDirPath = node && 
+					this.workspace.directoryStore.pathToRelativePath(
+						(node.fileType == 'folder') 
+							? node.path                // in folder
+							: paths.dirname(node.path) // in file
+					) || '' // at root level
 			}
 			relativePath = paths.join(relativeDirPath, name + '.md')
 
