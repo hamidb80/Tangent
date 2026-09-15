@@ -121,15 +121,13 @@ export default class CreateNewFileCommand extends WorkspaceCommand {
 			if (relativeDirPath.startsWith('.')) {
 				const workspaceDir = this.workspace.viewState.directoryView.root.path
 				const viewState = this.workspace.viewState.tangent.getCurrentViewState()
-				const absoluteParentDir = viewState 
-								? (viewState.node.fileType == 'folder') 
-									? viewState.node.path                // in folder
-									: paths.dirname(viewState.node.path) // in file
-								:  workspaceDir                          // at root level
-				const absoluteParentPath = paths.join(absoluteParentDir, relativeDirPath)
-				relativeDirPath = paths
-								.resolve(absoluteParentPath) // resolve . or ..
-				    			.substring(workspaceDir.length) // make path relative to the workspace
+				relativeDirPath = this.workspace.directoryStore.pathToRelativePath(
+					viewState
+					? (viewState.node.fileType == 'folder') 
+						? viewState.node.path                // in folder
+						: paths.dirname(viewState.node.path) // in file
+					:  workspaceDir                          // at root level
+				) || '' // impossible
 			}
 			relativePath = paths.join(relativeDirPath, name + '.md')
 
