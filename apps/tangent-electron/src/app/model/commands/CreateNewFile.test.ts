@@ -3,39 +3,46 @@ import CreateNewFileCommand, { type CreateNewFileCommandContext } from './Create
 import type { Workspace } from '..'
 import IndexTreeStore from 'common/indexing/IndexTreeStore'
 import { knownExtensions } from 'common/fileExtensions'
+import type { TreeNode } from 'common/trees'
 
 describe('Extension auto inclusion', () => {
-
-	const directoryStore = new IndexTreeStore({
-		files: {
-			name: 'root',
-			path: 'some/root',
-			depth: 1,
-			fileType: 'folder',
-			children: []
-		},
-		tags: {
-			path: '',
-			name: '',
-			names: [],
-			fileType: ''
-		}
-	})
-
-	const workspace = {
-		directoryStore,
-		viewState: {
-			directoryView: {
-				selection: {
-					value: []
+	// Expose the private function type-safely
+	function resolveContext(context: CreateNewFileCommandContext, node?: TreeNode) {
+		const directoryStore = new IndexTreeStore({
+			files: {
+				name: 'root',
+				path: 'some/root',
+				depth: 1,
+				fileType: 'folder',
+				children: []
+			},
+			tags: {
+				path: '',
+				name: '',
+				names: [],
+				fileType: ''
+			}
+		})
+	
+		const workspace = {
+			directoryStore,
+			viewState: {
+				directoryView: {
+					selection: {
+						value: []
+					}
+				},
+				tangent: {
+					getCurrentViewState() {
+						return {
+							node
+						}
+					},
 				}
 			}
-		}
-	} as Workspace
-
-	const command = new CreateNewFileCommand(workspace)
-	// Expose the private function type-safely
-	function resolveContext(context: CreateNewFileCommandContext) {
+		} as Workspace
+	
+		const command = new CreateNewFileCommand(workspace)
 		return (command as any).resolveContext(context)
 	}
 
@@ -107,6 +114,87 @@ describe('Extension auto inclusion', () => {
 			name: '2010.08.10',
 			extension: '.md',
 			creationMode: undefined
+		})
+	})
+
+	it('relative path: ./', () => {
+		expect(resolveContext({
+			rule: {
+				name: 'relative test',
+				nameTemplate: 'temp',
+				folder: './',
+				mode: 'createOrOpen',
+				contentTemplate: undefined,
+				description: undefined
+			},
+			extension: 'default-md'
+		}, {
+				path: '/some/root/note.md',
+				name: 'test note',
+				fileType: 'note',
+				createShallowCopy(){ return {} as TreeNode }
+		},
+		)).toEqual({
+			folderPath: 'some/root',
+			contentTemplateFile: undefined,
+			name: 'temp',
+			extension: '.md',
+			creationMode: 'createOrOpen'
+		})
+	})
+
+	
+	it('relative path: ../', () => {
+		expect(resolveContext({
+			rule: {
+				name: 'relative test',
+				nameTemplate: 'temp',
+				folder: '../test',
+				mode: 'createOrOpen',
+				contentTemplate: undefined,
+				description: undefined
+			},
+			extension: 'default-md'
+		}, {
+				path: '/some/root/note.md',
+				name: 'test note',
+				fileType: 'note',
+				createShallowCopy(){ return {} as TreeNode }
+		},
+		)).toEqual({
+			folderPath: 'some/test',
+			contentTemplateFile: undefined,
+			name: 'temp',
+			extension: '.md',
+			creationMode: 'createOrOpen'
+		})
+	})
+
+	
+	
+	it('relative path: ../**/', () => {
+		expect(resolveContext({
+			rule: {
+				name: 'relative test',
+				nameTemplate: 'temp',
+				folder: '../../../../test',
+				mode: 'createOrOpen',
+				contentTemplate: undefined,
+				description: undefined
+			},
+			extension: 'default-md'
+		}, {
+				path: '/some/root/note.md',
+				name: 'test note',
+				fileType: 'note',
+				createShallowCopy(){ return {} as TreeNode }
+		},
+		)).toEqual({
+			folderPath: 'test',
+			contentTemplateFile: undefined,
+			name: 'temp',
+			extension: '.md',
+			creationMode: 'createOrOpen'
 		})
 	})
 })

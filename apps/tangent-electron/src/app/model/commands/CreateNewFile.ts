@@ -120,12 +120,13 @@ export default class CreateNewFileCommand extends WorkspaceCommand {
 			let relativeDirPath = folderPath || rule.folder
 			if (relativeDirPath.startsWith('.')) {
 				const node = this.workspace.viewState.tangent.getCurrentViewState()?.node
-				relativeDirPath = node && 
+				const relativeNodePath = node && 
 					this.workspace.directoryStore.pathToRelativePath(
 						(node.fileType == 'folder') 
 							? node.path                // in folder
 							: paths.dirname(node.path) // in file
 					) || '' // at root level
+				relativeDirPath = paths.resolve(relativeNodePath + '/' + relativeDirPath)
 			}
 			relativePath = paths.join(relativeDirPath, name + '.md')
 
@@ -144,6 +145,10 @@ export default class CreateNewFileCommand extends WorkspaceCommand {
 				relativePath = theRelativePath
 			}
 		}
+
+		console.log({
+			relativePath
+		})
 
 		if (relativePath) {
 			const validatedPath = validatePath(relativePath)
