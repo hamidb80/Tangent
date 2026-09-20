@@ -146,10 +146,6 @@ export default class CreateNewFileCommand extends WorkspaceCommand {
 			}
 		}
 
-		console.log({
-			relativePath
-		})
-
 		if (relativePath) {
 			const validatedPath = validatePath(relativePath)
 			if (!validatedPath) {
