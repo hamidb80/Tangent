@@ -117,7 +117,7 @@ describe('Extension auto inclusion', () => {
 		})
 	})
 
-	it('relative path: ./', () => {
+	it('relative path in note: ./', () => {
 		expect(resolveContext({
 			rule: {
 				name: 'relative test',
@@ -142,9 +142,8 @@ describe('Extension auto inclusion', () => {
 			creationMode: 'createOrOpen'
 		})
 	})
-
 	
-	it('relative path: ../', () => {
+	it('relative path in note: ../', () => {
 		expect(resolveContext({
 			rule: {
 				name: 'relative test',
@@ -171,8 +170,7 @@ describe('Extension auto inclusion', () => {
 	})
 
 	
-	
-	it('relative path: ../**/', () => {
+	it('relative path in note: ../**/', () => {
 		expect(resolveContext({
 			rule: {
 				name: 'relative test',
@@ -197,4 +195,53 @@ describe('Extension auto inclusion', () => {
 			creationMode: 'createOrOpen'
 		})
 	})
+
+
+	it('relative path in folder: ./', () => {
+		expect(resolveContext({
+			rule: {
+				name: 'relative test',
+				nameTemplate: 'temp',
+				folder: './',
+				mode: 'createOrOpen',
+				contentTemplate: undefined,
+				description: undefined
+			},
+			extension: 'default-md'
+		}, {
+				path: '/some/root',
+				name: 'test note',
+				fileType: 'folder',
+				createShallowCopy(){ return {} as TreeNode }
+		},
+		)).toEqual({
+			folderPath: 'some/root',
+			contentTemplateFile: undefined,
+			name: 'temp',
+			extension: '.md',
+			creationMode: 'createOrOpen'
+		})
+	})
+
+	it('relative path at root: ./', () => {
+		expect(resolveContext({
+			rule: {
+				name: 'relative test',
+				nameTemplate: 'temp',
+				folder: './',
+				mode: 'createOrOpen',
+				contentTemplate: undefined,
+				description: undefined
+			},
+			extension: 'default-md'
+		},
+		)).toEqual({
+			folderPath: '',
+			contentTemplateFile: undefined,
+			name: 'temp',
+			extension: '.md',
+			creationMode: 'createOrOpen'
+		})
+	})
+	
 })
