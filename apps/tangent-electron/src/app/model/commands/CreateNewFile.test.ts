@@ -6,7 +6,7 @@ import { knownExtensions } from 'common/fileExtensions'
 import type { TreeNode } from 'common/trees'
 
 describe('Extension auto inclusion', () => {
-	// Expose the private function type-safely
+	
 	const directoryStore = new IndexTreeStore({
 		files: {
 			name: 'root',
@@ -23,6 +23,7 @@ describe('Extension auto inclusion', () => {
 		}
 	})
 
+	// Expose the private function type-safely
 	function resolveContext(context: CreateNewFileCommandContext, node?: TreeNode) {
 		const workspace = {
 			directoryStore,
