@@ -193,7 +193,6 @@ describe('Extension auto inclusion', () => {
 		})
 	})
 
-	
 	it('Resolves arbitrary ancestor paths relative to a note', () => {
 		expect(resolveContext({
 			rule: {
@@ -218,7 +217,6 @@ describe('Extension auto inclusion', () => {
 			creationMode: 'createOrOpen'
 		})
 	})
-
 
 	it('Resolves paths adjacent to a directory', () => {
 		expect(resolveContext({
