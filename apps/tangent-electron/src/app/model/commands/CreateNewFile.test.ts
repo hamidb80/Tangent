@@ -6,7 +6,7 @@ import { knownExtensions } from 'common/fileExtensions'
 import type { TreeNode } from 'common/trees'
 
 describe('Extension auto inclusion', () => {
-	
+
 	const directoryStore = new IndexTreeStore({
 		files: {
 			name: 'root',
