@@ -126,9 +126,9 @@ export default class CreateNewFileCommand extends WorkspaceCommand {
 							? node.path                // in folder
 							: paths.dirname(node.path) // in file
 					) || '' // at root level
-				relativeDirPath = paths.resolve(relativeNodePath + '/' + relativeDirPath)
+				relativeDirPath = paths.join(relativeNodePath, relativeDirPath)
 			}
-			relativePath = paths.join(relativeDirPath, name + '.md')
+			relativePath = paths.resolve(paths.join(relativeDirPath, name + '.md'))
 
 			if (rule.contentTemplate) {
 				const path = paths.join(this.workspace.directoryStore.files.path, rule.contentTemplate)
