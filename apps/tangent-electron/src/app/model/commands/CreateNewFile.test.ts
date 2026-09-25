@@ -58,6 +58,7 @@ describe('Extension auto inclusion', () => {
 		})
 	})
 
+	
 	it('Uses the provided extension when specified', () => {
 		expect(resolveContext({
 			name: 'test',
@@ -138,6 +139,31 @@ describe('Extension auto inclusion', () => {
 			folderPath: 'some/root',
 			contentTemplateFile: undefined,
 			name: 'temp',
+			extension: '.md',
+			creationMode: 'createOrOpen'
+		})
+	})
+
+	it('Resolves paths adjacent to a note name template', () => {
+		expect(resolveContext({
+			rule: {
+				name: 'relative test',
+				nameTemplate: '../assets/idea',
+				folder: '../',
+				mode: 'createOrOpen',
+				contentTemplate: undefined,
+				description: undefined
+			},
+			extension: 'default-md'
+		}, {
+				path: '/path/to/dir/note/idea.md',
+				name: 'test note',
+				fileType: 'note',
+		},
+		)).toEqual({
+			folderPath: 'path/to/assets',
+			contentTemplateFile: undefined,
+			name: 'idea',
 			extension: '.md',
 			creationMode: 'createOrOpen'
 		})
