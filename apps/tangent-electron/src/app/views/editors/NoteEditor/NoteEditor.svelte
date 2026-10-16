@@ -27,8 +27,8 @@ import AutoCompleteMenu from '../autocomplete/AutoCompleteMenu.svelte'
 import WikiLinkAutocompleteMenu from '../autocomplete/WikiLinkAutocompleteMenu.svelte'
 import type { FileLoadState } from 'app/model/File'
 import { FocusLevel } from 'common/dataTypes/TangentInfo'
-import { type HrefFormedLink, StructureType } from 'common/indexing/indexTypes'
-import type { ConnectionInfo } from 'common/indexing/indexTypes'
+import { type HrefFormedLink, IndexData, StructureType } from 'common/indexing/indexTypes'
+import type { ConnectionInfo, HeaderInfo } from 'common/indexing/indexTypes'
 import { areLineArraysOpTextEquivalent, type EditInfo, getEditInfo, getRangeWhile, rangesAreEquivalent, stripLineAttributes } from 'common/typewriterUtils'
 import { scrollTo } from 'app/utils';
 import { getLinkDirectionFromEvent, type KeyboardExitCallback, type NavigationCallback, type NavigationData, type ViewReadyCallback } from 'app/events'
@@ -62,6 +62,7 @@ import YamlTooltip from './YamlTooltip.svelte';
 import TemplateTokenTooltip from './TemplateTokenTooltip.svelte';
 import TemplateTokenAutocompleter from '../autocomplete/TemplateTokenAutocompleter';
 import TemplateTokenAutocompleteMenu from '../autocomplete/TemplateTokenAutocompleteMenu.svelte';
+  import { buildFuzzySegementMatcher } from 'common/search';
 
 // Technically, this just needs to exist _somewhere_. Putting it here because of the svelte dependency
 // Force the use of the variable so that it is included in the bundle
@@ -269,6 +270,7 @@ function disableFallbackMode() {
 		note.onFileContentChanged(note.getFileContent())
 	})
 }
+
 
 $: updateExtraSpace(extraTop, extraBottom, focusLevel, container)
 function updateExtraSpace(et?, eb?, fl?, ct?) {
@@ -1427,6 +1429,51 @@ function updateCodeBlockSizing(pre: HTMLElement, context: CodeBlockSizingContext
 	}
 }
 
+$: outlinevisible = false
+$: outlineFilter = ""
+$: outlines = [] as HeaderInfo[]
+
+function showOutline() {
+	outlinevisible = true
+}
+
+function hideOutline() {
+	if  (!outlineFilter) {
+		outlinevisible =  false
+	}
+}
+
+function filterOutline() {
+	let temp = ($note.meta?.structure || []).filter(it => it.type === 2)
+
+	if (outlineFilter) {
+		outlines = []
+		const searchMatcher = buildFuzzySegementMatcher(outlineFilter)
+
+		for (const h of temp) {
+			const match = h.text.match(searchMatcher)
+			if (match) {
+				outlines.push(h)
+			}
+		}
+
+	}
+	else {
+		outlines = temp
+	}
+}
+
+function selectRange(start, end) {
+	editor.select([start, end])
+	outlineFilter = ""
+	outlinevisible = false
+	filterOutline()
+}
+
+setTimeout(() => {
+	filterOutline()
+}, 1000);
+
 </script>
 
 <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
@@ -1459,6 +1506,34 @@ function updateCodeBlockSizing(pre: HTMLElement, context: CodeBlockSizingContext
 		showExtension={false}
 		onKeyboardExit={onHeaderKeyExit}
 		/>
+
+
+	<div class="outline"  on:mouseenter={showOutline} on:mouseleave={hideOutline}>
+	
+		<div class="outline-inner" class:small={!outlinevisible} >
+			<div class="outline-searchbar" s>
+				<input type="text" dir="auto" placeholder="Search Outline" bind:value={outlineFilter} on:input={filterOutline}>
+			</div>
+
+			<ul>
+				{#each outlines as item (item.start)}
+					<li>
+						<span class="pre" dir="ltr">
+							{#if outlinevisible}
+								H{item.level}
+							{:else}
+								--
+							{/if}
+						</span>
+						<a dir="auto" on:click={() => selectRange(item.start, item.end)}>
+							{(item as HeaderInfo).text}
+						</a>
+					</li>
+				{/each}
+			</ul>
+		</div>
+	</div>
+
 	<!-- svelte-ignore a11y-click-events-have-key-events -->
 	<article
 		bind:this={editorElement}
@@ -1625,4 +1700,97 @@ article {
 		margin-top: 0;
 	}
 }
+
+.outline {
+	position: sticky;
+    top: calc(50%);
+	right: 0;
+	height: 0;
+	direction: rtl;
+	z-index: 1;
+
+	.outline-inner {
+		display: inline-block;
+		transform: translateY(-50%);
+		box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+		background-color: var(--transparentBackgroundColor);
+		backdrop-filter: blur(20px);
+		border-radius: 16px;
+		padding: 10px;
+		margin-right: 10px;
+
+		&.small {
+			width: 10px;
+			overflow: hidden;
+
+			background-color: unset;
+			backdrop-filter: unset;
+			
+			.outline-searchbar{
+				visibility: hidden;
+			}
+		}
+
+		.outline-searchbar{
+			input {
+				width: 100%;
+				border: transparent 2px solid;
+				box-sizing: border-box;
+
+				&:focus{
+					border-color: green;
+				}
+			}
+		}
+		
+		ul {
+			width: 240px;
+			max-height: 400px;
+			list-style: none;
+			margin: 0;
+			padding: 0;
+			overflow-y: scroll;
+
+			li {
+				display: flex;
+				align-items: center;
+				cursor: auto;
+				margin-top: 8px;
+				margin-bottom: 8px;
+
+				
+				.pre{
+					margin-top: 4px;
+					margin-left: 6px;
+					white-space: nowrap;
+				} 
+				a {
+					white-space: nowrap;
+					overflow: hidden;
+					text-overflow: ellipsis;
+					cursor: pointer;
+					color: var(--deemphasizedTextColor);
+				}
+				
+				&:hover{
+					a {
+						text-decoration: none;
+						color: var(--text-color);
+					}
+				}
+
+				&.selected{
+					a {
+						color: var(--accentTextColor);
+					}
+					.pre {
+						background-color: var(--text-color);
+					}
+				}
+
+			}
+		}
+	}
+}
+
 </style>
